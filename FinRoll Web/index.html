@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>FinRoll Order</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-4">
+  <h1 class="text-xl font-bold text-center mb-4">🍣 สั่ง FinRoll</h1>
+  <div id="product-list" class="grid grid-cols-1 gap-4"></div>
+  <div id="cart" class="hidden mt-6 p-4 bg-white shadow rounded">
+    <h2 class="text-lg font-semibold mb-2">🛒 รายการที่เลือก</h2>
+    <ul id="cart-items" class="mb-2"></ul>
+    <p class="font-bold">รวม: <span id="total">0</span> บาท</p>
+    <input id="customerName" placeholder="ชื่อ" class="w-full border p-2 mt-2"/>
+    <input id="customerPhone" placeholder="เบอร์โทร" class="w-full border p-2 mt-2"/>
+    <textarea id="customerAddress" placeholder="ที่อยู่จัดส่ง" class="w-full border p-2 mt-2"></textarea>
+    <button id="payBtn" class="w-full bg-green-500 text-white py-2 mt-4 rounded">
+      ชำระเงิน
+    </button>
+  </div>
+  <div id="payment" class="hidden mt-6 text-center">
+    <h2 class="text-lg font-semibold mb-2">💵 ชำระเงิน</h2>
+    <img id="qr" class="mx-auto"/>
+    <p class="mt-2 text-gray-600">สแกน QR พร้อมเพย์เพื่อชำระ</p>
+    <button id="confirmBtn" class="w-full bg-blue-500 text-white py-2 mt-4 rounded">
+      แจ้งชำระเงินแล้ว
+    </button>
+  </div>
+  <script>
+    const products = [
+      {id:1, name:"FinRoll S", price:49, img:"https://via.placeholder.com/150"},
+      {id:2, name:"FinRoll M", price:69, img:"https://via.placeholder.com/150"},
+      {id:3, name:"FinRoll L", price:89, img:"https://via.placeholder.com/150"},
+      {id:4, name:"FinRoll XL", price:109, img:"https://via.placeholder.com/150"},
+      {id:5, name:"น้ำจิ้มซีฟู้ด", price:10, img:"https://via.placeholder.com/150"}
+    ];
+    const cart = [];
+    const listEl = document.getElementById("product-list");
+    const cartEl = document.getElementById("cart");
+    const itemsEl = document.getElementById("cart-items");
+    const totalEl = document.getElementById("total");
+    const payEl = document.getElementById("payment");
+
+    products.forEach(p => {
+      const div = document.createElement("div");
+      div.className = "bg-white p-4 shadow rounded flex items-center justify-between";
+      div.innerHTML = `
+        <div>
+          <p class="font-bold">${p.name}</p>
+          <p class="text-gray-600">${p.price} บาท</p>
+        </div>
+        <button class="bg-green-500 text-white px-3 py-1 rounded">เพิ่ม</button>
+      `;
+      div.querySelector("button").onclick = () => {
+        cart.push(p);
+        updateCart();
+      };
+      listEl.appendChild(div);
+    });
+
+    function updateCart() {
+      itemsEl.innerHTML = "";
+      let total = 0;
+      cart.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = `${item.name} - ${item.price} บาท`;
+        itemsEl.appendChild(li);
+        total += item.price;
+      });
+      totalEl.textContent = total;
+      if(cart.length > 0) cartEl.classList.remove("hidden");
+    }
+
+    document.getElementById("payBtn").onclick = () => {
+      const total = cart.reduce((sum,p)=>sum+p.price,0);
+      const phone = "0812345678"; // เบอร์พร้อมเพย์ของร้าน
+      const qrUrl = `https://promptpay.io/${phone}/${total}.png`;
+      document.getElementById("qr").src = qrUrl;
+      payEl.classList.remove("hidden");
+    };
+
+    document.getElementById("confirmBtn").onclick = () => {
+      liff.init({ liffId: "YOUR_LIFF_ID" }).then(() => {
+        liff.sendMessages([{
+          type: "text",
+          text: "ลูกค้าได้ชำระเงินแล้วครับ ✅"
+        }]).then(() => {
+          alert("ส่งข้อความไปที่ OA แล้ว");
+        });
+      });
+    };
+  </script>
+</body>
+</html>
